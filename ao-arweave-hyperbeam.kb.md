@@ -173,15 +173,35 @@ HyperBEAM exposes an HTTP API (HyperPATHs) utilizing RFC-9421 HTTP Message Signa
 
 ---
 
-## 7. Testing, Debugging, & Profiling
+## 7. AOS SQLite module
+The AOS SQLite module provides a full SQLite database that is natively embedded directly into AO contracts
 
-### 7.1 Running Tests
+*  **In-WASM Execution:** Because AO processes operate within WebAssembly (WASM), the SQLite database is compiled and runs directly inside an isolated AO ~process@1.0 environment.
+*  **On-Chain State Memory:** It functions as a live, on-chain memory snapshot for applications, enabling structured data management and decentralized, trustless querying.
+*  **Message-Driven Execution:** When a Compute Unit (CU) receives an interaction message, it executes standard SQL commands (such as INSERT or SELECT) directly within its isolated memory space to process state changes.
+* **Cost-Efficient Querying:** Users can interact with the SQLite state using "dry-run" messages via Compute Units. This allows them to execute queries and read data without writing to the chain, meaning they do not incur permanent Arweave storage fees.
+* **Simple Implementation:** It is ideal for straightforward application logic that requires structured data. For example, you can deploy a script that accepts a user's name and score, inserts it into a single embedded SQLite table, and returns the top entries.
+
+### 7.1 Using the AOS SQLite module
+To use the embedded AOS SQLite capability, you must interact with the AO process hosting it. In the HyperBEAM architecture, every interaction is treated as an HTTP request sent to specific endpoints called "devices" via HyperPATHs.
+
+Because the SQLite database runs inside an isolated WebAssembly process, you do not use traditional SQL connection strings. Instead, you send messages (which contain your SQL commands or application logic) to its devices and the Compute Unit (CU) executes them.
+
+*  **Writing Data (State Changes):** To insert or update data in your SQLite database, you send a message to the process through a Messenger Unit (MU). This message is assigned a slot by the `~scheduler@1.0` device and permanently stored on Arweave, ensuring your database state is deterministic and reproducible.
+*  **Reading Data (Cost-Free Queries):** To execute SELECT queries without paying Arweave storage fees, you use the CU's `dry-run` endpoint. The CU will load the process's memory snapshot, execute your read query against the SQLite database within its memory, and return the result directly to you without logging the transaction on-chain.
+*  **Frontend Integration:** If you are building a user interface for your application, you can easily trigger these device calls using the aoconnect SDK. Use the `dryrun` function to execute cost-free SQLite queries through your local or preferred CU. Use the `message` or `spawn` functions to write new data to the database. The SDK will automatically utilize the default MU to save the message to Arweave.
+
+---
+
+## 8. Testing, Debugging, & Profiling
+
+### 8.1 Running Tests
 *   **Run all tests:** `rebar3 eunit`.
 
-### 7.2 Debug Logging
+### 8.2 Debug Logging
 Use `?event(term())` in code to write debug prints to the CLI, visible by setting the `HB_PRINT` environment variable.
 
-### 7.3 Troubleshooting & CU Memory Tuning
+### 8.3 Troubleshooting & CU Memory Tuning
 *   **Memory Tuning for CUs:** When operating Compute Units (CUs) dedicated to complex executions, especially intensive AI inference tasks required by "Sixth Entity" operations, developers must proactively configure WebAssembly container limits. Adjust the `PROCESS_WASM_MEMORY_MAX_LIMIT` environment variable in the node configuration to allocate sufficient RAM headroom preventing out-of-memory (OOM) crashes during peak parallel or LLM processing loads.
 
 ### 7.4 Performance Tuning: Chunk Retrieval
