@@ -195,3 +195,78 @@ Because the SQLite database runs inside an isolated WebAssembly process, you do 
 *  **Writing Data (State Changes):** To insert or update data in your SQLite database, you send a message to the process through a Messenger Unit (MU). This message is assigned a slot by the `~scheduler@1.0` device and permanently stored on Arweave, ensuring your database state is deterministic and reproducible.
 *  **Reading Data (Cost-Free Queries):** To execute SELECT queries without paying Arweave storage fees, you use the CU's `dry-run` endpoint. The CU will load the process's memory snapshot, execute your read query against the SQLite database within its memory, and return the result directly to you without logging the transaction on-chain.
 *  **Frontend Integration:** If you are building a user interface for your application, you can easily trigger these device calls using the aoconnect SDK. Use the `dryrun` function to execute cost-free SQLite queries through your local or preferred CU. Use the `message` or `spawn` functions to write new data to the database. The SDK will automatically utilize the default MU to save the message to Arweave.
+
+  ---
+
+## 9. Permaweb apps
+The PermawebOS execution environment represents a paradigm shift where HyperBEAM abstracts hardware provisioning from the process runtime. By leveraging a decentralized operating system, we can build AI-native applications that are persistent, verifiable, and capable of trustless interaction with the legacy web.
+
+### 9.1 The Weather Oracle Scenario
+The concept is probably best demonstrated with a simple example app.
+The following Gherkin-style feature file defines the deterministic functional requirements for a user interacting with a weather application. This specification ensures that the non-deterministic bridge (external data) is integrated into the AO process via validated message-passing.
+```
+Feature: Permaweb Weather Data Retrieval
+  As a human user accessing the Permaweb
+  I want to request the current weather for a specific location through the frontend interface
+  So that I can view real-time, validated environmental data retrieved via an oracle and stored permanently.
+
+  Scenario: User requests weather update for a specific coordinate
+    Given the user has navigated to the weather application's ArNS domain on the Permaweb
+    And the user's Wander wallet (formerly ArConnect) is connected to the application
+    And the backend AO process and 0rbit oracle service are active on the network
+    When the user submits a request for coordinates "51.5074° N, 0.1278° W" via the frontend interface
+    Then the frontend should dispatch a signed message using the wallet to the AO process
+    And the AO process should request the external URL data via the 0rbit service
+    And the user should see the validated temperature and humidity results displayed on the screen
+```
+
+### 9.2 Backend Architecture: Lua & AO Process Logic
+The execution environment for the weather application is a decentralized operating system where AO processes operate as independent, hosted entities.
+Device Context HyperBEAM includes approximately 25 preloaded devices within its runtime. We primarily utilize `~process@1.0` to enable persistent, shared executions and `~relay@1.0` to bridge the AO environment to the wider HTTP network for external API access.
+0rbit Oracle Integration External data acquisition on AO is governed by a market for security mechanisms. To incentivize oracle providers, requests to 0rbit must include a fee, typically paid in CRED or AO tokens. These requests are routed through the `~relay@1.0` device, which performs the actual HTTP fetch.
+
+The Request-Response Lifecycle:
+   1. Message Dispatch: The Lua backend sends a message to the 0rbit service. This message must include specific Tags for routing: Action (e.g., "Get-Real-Data"), Target-URL (the weather API endpoint), and the Fee payment logic to reward the provider.
+   2. Relay Execution: The `~relay@1.0 device` intercepts the message and performs the HTTP request to the external API, acting as the bridge between the AO process and the non-deterministic web
+   3. Asynchronous Callback: Once data is retrieved, 0rbit sends a return message back to the AO process.
+   4. Data Processing: The backend implements an asynchronous callback handler to process and validate the returning payload before updating the application state.
+
+### 9.3 Frontend Integration: Vanilla JS & Wallet Authorisation
+Permaweb applications rely on non-custodial wallet connections to maintain user sovereignty. We use a lightweight Vanilla JS approach to interface with the AO network.
+   * User Action	JavaScript / Arweave API Call
+   * Connect Wallet	window.arweaveWallet.connect(['ACCESS_ADDRESS', 'SIGN_TRANSACTION'])
+   * Authorise App	window.arweaveWallet.getPermissions()
+   * Sign AO Message	createDataItemSigner(window.arweaveWallet)
+   * Send Data	aoconnect.message({ process, signer, tags, data })
+The createDataItemSigner utility is critical for signing messages locally before they are dispatched to the AO network via the message function in the aoconnect library.
+
+### 9.4 Efficient State Management: Free Data Retrieval
+Optimizing for the Permaweb involves minimizing transaction overhead by utilizing local execution simulations for read-only operations.
+*  **aoconnect Dryrun:** This function allows the client to simulate message execution within the node. It retrieves the current process state or the result of a function without generating a transaction on Arweave, making it ideal for checking the current weather.
+*  **HyperBEAM `~patch@1.0`:** This specific optimization allows the node runtime to observe state changes without transaction costs. By abstracting the underlying machine hardware, HyperBEAM allows operators to offer these observation services efficiently.
+
+Economic Benefit Read-only operations should never incur fees. Using dryrun for state retrieval or the ~patch@1.0 device for observation ensures the application remains economically viable, reserving on-chain transactions exclusively for permanent state mutations.
+
+### 9.5 Deployment and Naming: From Local to Permaweb
+Deploying to the Permaweb follows the "Vibe Coding" philosophy: utilizing seed applications to skip traditional DevOps.
+
+**Vibe Coding Mechanics** Seed applications like Public Square carry fork instructions in their headers. Local agents, such as Claude Code or Codex CLI, identify the source code through these headers, allowing developers to fork, modify, and deploy a permanent instance in minutes.
+
+This a sample prompt for the Public Square seed:
+```
+Look in the headers for the code archive and fork arweave.net/kkTIOszueFOmJ2pBo3ymi5Qkw7xgVBYTGe4irFJnZ4M/ and add [insert your new feature here]
+```
+
+These "headers" refer to the Arweave transaction metadata tags that are attached to the file when it is permanently uploaded to the network. Specifically, permaweb apps carry a `code` tag in their transaction metadata that points to the actual source code archive.
+
+Deployment Checklist
+* [ ] Provision Wallet: Ensure the priv_key_location in your node configuration points to a valid Arweave JWK.
+* [ ] Fork Seed App: Direct your local agent to a seed TX-ID to pull the source and fork the architecture.
+* [ ] Implement Features: Add your specific weather Lua logic and JS frontend components.
+* [ ] Deploy Assets: Use permaweb-deploy or ardrive to upload the manifest and assets, ensuring they are "permanently hosted" per the Arweave Lightpaper.
+* [ ] Map ArNS: Map the resulting deployment Transaction ID (TX-ID) to a human-readable Arweave Name System (ArNS) name.
+
+### 9.6 Technical Constraints and Configuration
+HyperBEAM configuration requires strict adherence to data types to ensure node reliability.
+
+**Pro-Tip: Advanced Configuration:** The config.flat file is restricted to simple atoms and binaries; acceptable entries include port, mode, and priv_key_location. Do not attempt to include complex data structures like Maps or Lists (e.g., routes or store configurations) in config.flat, as they will fail to parse. For complex routing rules and storage backends, you must use hb:start_mainnet/1 to ensure full type support and immediate validation at startup.
