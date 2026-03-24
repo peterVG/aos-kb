@@ -138,19 +138,6 @@ A first-class indexing layer exists within HyperBEAM to reduce the hardware burd
 *  **Header Exclusion:** Indexers may choose to discard Arweave block headers after the indexing process to further optimize disk usage.
 ---
 
-## 5. x402 (HTTP 402) Payment Protocols
-
-Instead of Web2 payment gateways like Stripe, developers can utilize HTTP `402 Payment Required` semantics to natively token-gate application endpoints.
-
-### How the x402 Flow Works
-
-  1. Request: A user (or AI agent) attempts to access a HyperPATH (e.g., GET /~my-app/compute).
-  2. Challenge (402): The node responds with an HTTP 402 Payment Required status code.
-  3. Payment: The user’s wallet (often a Managed TEE Wallet or Wander) detects the 402 and signs a micro-transaction in $AO or GiB.
-  4. Access: The ~simple-pay device validates the signature and the ~relay finally allows the request to reach the application logic.
----
-
-
 ## 6. HyperBEAM Architecture: Devices & HyperPATHs
 
 HyperBEAM exposes an HTTP API (HyperPATHs) utilizing RFC-9421 HTTP Message Signatures for authentication. Every interaction is done by sending HTTP requests to specific device endpoints.
@@ -173,7 +160,25 @@ HyperBEAM exposes an HTTP API (HyperPATHs) utilizing RFC-9421 HTTP Message Signa
 
 ---
 
-## 7. AOS SQLite module
+## 7. Testing, Debugging, & Profiling
+
+### 7.1 Running Tests
+*   **Run all tests:** `rebar3 eunit`.
+
+### 7.2 Debug Logging
+Use `?event(term())` in code to write debug prints to the CLI, visible by setting the `HB_PRINT` environment variable.
+
+### 7.3 Troubleshooting & CU Memory Tuning
+*   **Memory Tuning for CUs:** When operating Compute Units (CUs) dedicated to complex executions, especially intensive AI inference tasks required by "Sixth Entity" operations, developers must proactively configure WebAssembly container limits. Adjust the `PROCESS_WASM_MEMORY_MAX_LIMIT` environment variable in the node configuration to allocate sufficient RAM headroom preventing out-of-memory (OOM) crashes during peak parallel or LLM processing loads.
+
+### 7.4 Performance Tuning: Chunk Retrieval
+*  **Direct Serving:** HyperBEAM is optimized to serve chunked data directly from Arweave nodes, eliminating the need for large, expensive local caches.
+*  **Parallel Gap-Filling:** The system utilizes parallel chunk range fetching and "gap-fill" logic to maintain high performance.
+*  **Logic Location:** These operations are handled within dev_arweave.erl (specifically around lines 188 and 251).
+
+---
+
+## 8. AOS SQLite module
 The AOS SQLite module provides a full SQLite database that is natively embedded directly into AO contracts
 
 *  **In-WASM Execution:** Because AO processes operate within WebAssembly (WASM), the SQLite database is compiled and runs directly inside an isolated AO ~process@1.0 environment.
@@ -182,7 +187,7 @@ The AOS SQLite module provides a full SQLite database that is natively embedded 
 * **Cost-Efficient Querying:** Users can interact with the SQLite state using "dry-run" messages via Compute Units. This allows them to execute queries and read data without writing to the chain, meaning they do not incur permanent Arweave storage fees.
 * **Simple Implementation:** It is ideal for straightforward application logic that requires structured data. For example, you can deploy a script that accepts a user's name and score, inserts it into a single embedded SQLite table, and returns the top entries.
 
-### 7.1 Using the AOS SQLite module
+### 8.1 Using the AOS SQLite module
 To use the embedded AOS SQLite capability, you must interact with the AO process hosting it. In the HyperBEAM architecture, every interaction is treated as an HTTP request sent to specific endpoints called "devices" via HyperPATHs.
 
 Because the SQLite database runs inside an isolated WebAssembly process, you do not use traditional SQL connection strings. Instead, you send messages (which contain your SQL commands or application logic) to its devices and the Compute Unit (CU) executes them.
@@ -190,21 +195,3 @@ Because the SQLite database runs inside an isolated WebAssembly process, you do 
 *  **Writing Data (State Changes):** To insert or update data in your SQLite database, you send a message to the process through a Messenger Unit (MU). This message is assigned a slot by the `~scheduler@1.0` device and permanently stored on Arweave, ensuring your database state is deterministic and reproducible.
 *  **Reading Data (Cost-Free Queries):** To execute SELECT queries without paying Arweave storage fees, you use the CU's `dry-run` endpoint. The CU will load the process's memory snapshot, execute your read query against the SQLite database within its memory, and return the result directly to you without logging the transaction on-chain.
 *  **Frontend Integration:** If you are building a user interface for your application, you can easily trigger these device calls using the aoconnect SDK. Use the `dryrun` function to execute cost-free SQLite queries through your local or preferred CU. Use the `message` or `spawn` functions to write new data to the database. The SDK will automatically utilize the default MU to save the message to Arweave.
-
----
-
-## 8. Testing, Debugging, & Profiling
-
-### 8.1 Running Tests
-*   **Run all tests:** `rebar3 eunit`.
-
-### 8.2 Debug Logging
-Use `?event(term())` in code to write debug prints to the CLI, visible by setting the `HB_PRINT` environment variable.
-
-### 8.3 Troubleshooting & CU Memory Tuning
-*   **Memory Tuning for CUs:** When operating Compute Units (CUs) dedicated to complex executions, especially intensive AI inference tasks required by "Sixth Entity" operations, developers must proactively configure WebAssembly container limits. Adjust the `PROCESS_WASM_MEMORY_MAX_LIMIT` environment variable in the node configuration to allocate sufficient RAM headroom preventing out-of-memory (OOM) crashes during peak parallel or LLM processing loads.
-
-### 7.4 Performance Tuning: Chunk Retrieval
-*  **Direct Serving:** HyperBEAM is optimized to serve chunked data directly from Arweave nodes, eliminating the need for large, expensive local caches.
-*  **Parallel Gap-Filling:** The system utilizes parallel chunk range fetching and "gap-fill" logic to maintain high performance.
-*  **Logic Location:** These operations are handled within dev_arweave.erl (specifically around lines 188 and 251).
