@@ -20,7 +20,7 @@ Arweave is a decentralized, permanent information storage protocol. It provides 
 *   **The Blockweave:** Blocks flexibly link to the previous block and a randomly selected historical block to ensure absolute data integrity. The top-level data structure is a merkelized list of 3-tuples (block hash, weave size, transaction root), allowing nodes to perform Simplified Payment Verification (SPV) without downloading intermediate headers.
 *   **Verifiable Delay Function (VDF):** A chained hashing technique (SHA2-256) evaluates the passage of time. It outputs a checkpoint approximately once every second, unlocking challenges within the dataset.
 *   **The Endowment Model:** Users pay a one-time upfront fee for permanent storage. Mathematically, 85% of this fee enters an endowment pool to guarantee continuous miner compensation independent of current network activity.
-*   **Storage Economics (GiB Token):** In 2026 economic standards, Nau Finance's GiB stablecoin acts as the standard primitive for calculating long-term storage costs, ensuring developers price resources against a stable metric of byte-storage rather than fluctuating fiat or native AR values. 
+*   **Storage Economics (GiB Token):** Nau Finance's GiB stablecoin acts as the standard primitive for calculating long-term storage costs, ensuring developers price resources against a stable metric of byte-storage rather than fluctuating fiat or native AR values. 
 *   **Node Operations:** To fulfill SPORA, the Node OS must undergo "Workload Tuning" optimizing for constant read-access of historical data chunks. Furthermore, wallet integration featuring a strict mining key is required to actively receive $AR rewards.
 
 ### 1.2 AO-Core Protocol (Hyper-Parallel Compute)
@@ -35,13 +35,13 @@ AO-Core is a protocol for **hyper-parallel compute**, replacing traditional "dis
     *   *Garbage Collection:* Operates via per-process local heap isolation, eliminating "Stop-the-World" global collection spikes.
     *   *Uptime (Hot Code Reloading):* Allows live structural updates without halting the underlying framework (no restarts/downtime required).
 *   **Holographic State:** A process "state" is *never* stored in a traditional database. Instead, it is "holographic": a reproducible, deterministic result derived entirely from replaying the permanent, sequential message logs stored on Arweave. Holographic state is location-independent "projected" state. It is not tied to any physical hardware; it is a mathematical certainty derived from permanent inputs.
-*   **Autonomous "Cron" Capabilities:** In 2026, AO processes are no longer purely reactive. Developers must leverage autonomous "Cron" capabilities to set up scheduled evaluations, allowing processes to actively "wake up" based on node subscriptions and network clock ticks rather than waiting for an external user trigger.
+*   **Autonomous "Cron" Capabilities:** AO processes are not purely reactive. Developers must leverage autonomous "Cron" capabilities to set up scheduled evaluations, allowing processes to actively "wake up" based on node subscriptions and network clock ticks rather than waiting for an external user trigger.
 *   **Messages:** Every piece of data is a "message", interpreted as a binary term or a map of functions, strictly using HTTP semantics (RFC 9110). This foundation enables advanced native primitives like **x402 (HTTP 402 Payment Required)** for decentralized metering.
 *   **Hashpaths:** The raw, unnamed schedules of inputs that define a specific point in the global compute state space.
 *   **Processes:** Immutable references (names) that point to a specific, evolving Hashpath over time.
 
 ### 1.3 Nau Finance & The GiB Stablecoin
-Instead of being pegged to a fiat currency like the US Dollar, the **GiB token** is a "data stablecoin" pegged exactly to the cost of 1 GiB of permanent storage on Arweave. It is central to the 2026 economic standard:
+Instead of being pegged to a fiat currency like the US Dollar, the **GiB token** is a "data stablecoin" pegged exactly to the cost of 1 GiB of permanent storage on Arweave.
 1. **Data Capacity vs. Monetary Value:** Because the token is pegged to storage capacity rather than dollars, its fiat value actually *decreases* over time due to the Kryder+ rate (the declining cost of physical storage hardware). This makes it highly predictable for developers buying storage and an attractive option for hedging or leverage trading.
 2. **Predictable Storage Endowments:** Developers and users mint GiB by collateralizing `$AR`. They can then use GiB to pay for their permanent storage endowments. This ensures developers have a highly stable, predictable metric for their infrastructure costs rather than dealing with the extreme volatility of native `$AR` token swings.
 3. **The HyperBEAM Oracle:** To guarantee the peg's accuracy, Nau Finance relies on a HyperBEAM Oracle running on the AO hyper-parallel compute network. It calculates a 6-week time-weighted moving average for the real-time price of a single byte on the Arweave network.
@@ -119,7 +119,7 @@ HyperBEAM utilizes a prioritized configuration system: **Environment Variables >
 *   **`hb:start_mainnet/1`:** For complex configurations (routing, customized storage arrays), you **must** use the Erlang API `hb:start_mainnet(#{port => 10001})`.
 
 ```erlang
-% 2026 Example: Utilizing a decentralized AO gateway resolution
+% Example: Utilizing a decentralized AO gateway resolution
 hb:start_mainnet(#{
     http_extra_opts => #{
         store => [
