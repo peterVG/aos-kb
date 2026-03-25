@@ -54,7 +54,7 @@ To natively interact with the Arweave and AO ecosystems, developers and users mu
 *   **$AO (AO Token):** The native token securing message passing within the AO hyper-parallel computer. Modeled on a Bitcoin-style 4-year halving cycle, it has a strictly capped maximum supply of `21 Million`. Interestingly, it features a `100% community distribution` model with absolutely zero pre-sale. 
 *   **Earning $AO:** Users actively accrue $AO either by holding AR (36% of the supply is distributed to $AR holders over time) or by bridging assets like stETH or DAI to receive derivatives (e.g., aoETH).
 *   **The Armstrong:** The smallest calculable unit of the AO ecosystem is "The Armstrong" (named after Joe Armstrong). Mathematically, `$10^9$ Armstrongs = 1 $AO`.
-*   **The Wander Extension (ArConnect):** For frontend interaction and securing keyfiles, developers and users can use the Wander browser extension (formerly ArConnect). Rather than dangerously hardcoding raw private keys or pasting `wallet.json` contents into browser UIs, Wander acts as a secure, non-custodial signing bridge. It allows the Vanilla JS frontend to securely execute `window.arweaveWallet.sign()` transactions and interact with AO gateways natively.
+*   **The Wander Extension (ArConnect):** For frontend interaction and securing keyfiles, developers and users can use the Wander browser extension (formerly ArConnect). Rather than dangerously hardcoding raw private keys or pasting `wallet.json` contents into browser UIs, Wander acts as a secure, non-custodial signing bridge. It allows the HTML5 / Vanilla JS frontend to securely execute `window.arweaveWallet.sign()` transactions and interact with AO gateways natively.
 *   **Onboarding Constraints:** A critical barrier for transitioning Web2 developers is the absence of a pre-funded keyfile. AI Agents generating initialization scripts **MUST** script automated checks to look for `./wallet.json` on startup. If missing or unfunded, the scaffolding must pause and explicitly interact with the developer on how to securely generate the wallet locally (e.g., via `arweave-js` or `ao-connect`) and route them to an official faucet or bridge to acquire testnet/mainnet `$AR` and `$AO` balances before attempting deployment.
 * **Managed TEE Wallets:** By using the `~auth-hook@1.0` device, applications can gate trust-minimized wallets using standard Web2 authentication like cookies, OAuth, or social logins.
 
@@ -232,8 +232,8 @@ The Request-Response Lifecycle:
    3. Asynchronous Callback: Once data is retrieved, 0rbit sends a return message back to the AO process.
    4. Data Processing: The backend implements an asynchronous callback handler to process and validate the returning payload before updating the application state.
 
-### 9.3 Frontend Integration: Vanilla JS & Wallet Authorisation
-Permaweb applications rely on non-custodial wallet connections to maintain user sovereignty. We use a lightweight Vanilla JS approach to interface with the AO network.
+## 9.3 Frontend Integration: HTML5, Vanilla JS & Wallet Authorisation
+Permaweb applications rely on non-custodial wallet connections to maintain user sovereignty. We use a lightweight HTML5 and Vanilla JS approach to interface with the AO network.
    * User Action	JavaScript / Arweave API Call
    * Connect Wallet	window.arweaveWallet.connect(['ACCESS_ADDRESS', 'SIGN_TRANSACTION'])
    * Authorise App	window.arweaveWallet.getPermissions()
