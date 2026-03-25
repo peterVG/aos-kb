@@ -296,3 +296,8 @@ Because WAO offers sub-second testing validation combined with structured domain
 
 ### 10.4 Erlang Infrastructure & Rebar3
 While WAO is the primary framework for testing the **Application Layer** (Lua/AOS smart contracts and JavaScript frontends), **Rebar3** remains the official compilation and testing tool for the **Infrastructure Layer**. If a developer needs to build low-level custom HyperBEAM devices or extend the underlying nodes in Erlang/OTP, they must use Rebar3 (and its built-in EUnit/Common Test frameworks) rather than WAO.
+
+### 10.5 Behavior-Driven Development (BDD)
+WAO seamlessly supports a complete BDD architecture to satisfy strict testing requirements. As a fast in-memory emulation engine, WAO integrations should explicitly utilize the following language-specific BDD frameworks:
+* **Busted:** The native Lua test runner. It exposes `describe`/`it` BDD syntax blocks that can iteratively dispatch logic into WAO instances for backend backend smart contract unit testing.
+* **Cucumber.js:** The definitive end-to-end testing framework. It wraps WAO SDK APIs and parses strict `.feature` Gherkin files. Tests drive simulated messages into the emulated AO network while sequentially executing UI assertions on the Javascript frontend via Playwright.
