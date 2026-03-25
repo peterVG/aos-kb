@@ -214,10 +214,11 @@ Feature: Permaweb Weather Data Retrieval
     Given the user has navigated to the weather application's ArNS domain on the Permaweb
     And the user's Wander wallet (formerly ArConnect) is connected to the application
     And the backend AO process and 0rbit oracle service are active on the network
-    When the user submits a request for coordinates "51.5074° N, 0.1278° W" via the frontend interface
+    When the user submits a geographic location via the frontend interface
     Then the frontend should dispatch a signed message using the wallet to the AO process
-    And the AO process should request the external URL data via the 0rbit service
-    And the user should see the validated temperature and humidity results displayed on the screen
+    And the AO process should request the external URL data via the 0rbit service using the geographic location or its nearest weather station
+    And the user should see the validated temperature and humidity results displayed on the screen for that location
+    And the results should be permanently stored on the Arweave blockchain
 ```
 
 ### 9.2 Backend Architecture: Lua & AO Process Logic
@@ -270,3 +271,28 @@ Deployment Checklist
 HyperBEAM configuration requires strict adherence to data types to ensure node reliability.
 
 **Pro-Tip: Advanced Configuration:** The config.flat file is restricted to simple atoms and binaries; acceptable entries include port, mode, and priv_key_location. Do not attempt to include complex data structures like Maps or Lists (e.g., routes or store configurations) in config.flat, as they will fail to parse. For complex routing rules and storage backends, you must use hb:start_mainnet/1 to ensure full type support and immediate validation at startup.
+
+---
+
+## 10. WAO (WizardAO) SDK & Testing Framework
+
+WizardAO provides a comprehensive staging environment for engineers building on Arweave and AO, emphasizing high-speed local development and Agent Driven Development (HyperADD). 
+
+### 10.1 Sub-second Local Emulation
+WAO introduces a lightning-fast testing framework for AOS, HyperBEAM, and AI components. It allows developers to test Lua scripts up to 1000x faster than mainnet by emulating AO units directly in-memory.
+* **Testing Execution:** Developers can launch HyperBEAM nodes from JS test code, spin up standalone local units with a simple `npx wao`, and build custom devices.
+* **WAO SDK:** An extension of the standard `aoconnect` library (Wander) that provides syntactic sugar, seamless message piping, and async message result validation to drastically reduce boilerplate test code.
+
+### 10.2 Deployment Environments
+WAO supports five distinct execution environments, enabling a workflow from instant testing to production deployment:
+1. **In-Memory Emulation:** The fastest execution environment for instant, local test feedback.
+2. **Local AOS / AO (Sandboxed):** Run via the `npx wao` command for local node simulation.
+3. **Local HyperBEAM (HB)**
+4. **WAO Devnet:** A lightweight edge implementation of the full AO network (AR, SU, MU, CU, BD) deployed on Cloudflare Workers. It acts as a horizontally and vertically scalable edge network, perfect for staging integrations.
+5. **Remote HyperBEAM Production**
+
+### 10.3 Agent Driven Development (HyperADD)
+Because WAO offers sub-second testing validation combined with structured domain knowledge, it acts as the ideal stack for Agent Driven Development. AI agents can build and write test plans reliably under this framework because the ultra-fast feedback loop allows them to iterate autonomously, rapidly validating logic without hallucinating patterns.
+
+### 10.4 Erlang Infrastructure & Rebar3
+While WAO is the primary framework for testing the **Application Layer** (Lua/AOS smart contracts and JavaScript frontends), **Rebar3** remains the official compilation and testing tool for the **Infrastructure Layer**. If a developer needs to build low-level custom HyperBEAM devices or extend the underlying nodes in Erlang/OTP, they must use Rebar3 (and its built-in EUnit/Common Test frameworks) rather than WAO.
